@@ -44,6 +44,30 @@ const fetchGroups = async () => {
     }
 };
 
+const createGroup = async (groupName) => {
+    try {
+        const response = await fetch(`${BASE_URL}/groups`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                groupName: groupName
+            }),
+        });
+
+        if (!response.ok) {
+            console.error('Failed to create group:', await response.json());
+            return null;
+        }
+
+        const group = await response.json();
+        console.log(`Successfully created new group: ${group.name} (ID: ${group.id})`);
+        return group;
+    } catch (error) {
+        console.error('Error creating group:', error.message);
+        return null;
+    }
+};
+
 // Join a group
 const joinGroup = async (groupId) => {
     try {
@@ -196,7 +220,7 @@ const main = async () => {
             });
         } else {
             console.log(`Welcome, ${username}! It looks like you're new here.`);
-            console.log("Let's join a group to start chatting.");
+            console.log("Let's create or join a group to start chatting.");
         }
 
         break; // Exit the loop once the username is validated
@@ -210,7 +234,8 @@ const main = async () => {
         console.log('1. View and Join a Group');
         console.log('2. Select one of your groups to chat in');
         console.log('3. Chat in Current Group');
-        console.log('4. Exit');
+        console.log('4. Create a New Group');
+        console.log('5. Exit');
 
         const option = await prompt('Choose an option: ');
 
@@ -275,8 +300,26 @@ const main = async () => {
                 clearInterval(messagePolling);
                 console.log('Stopped chatting in the current group.');
                 break;
+            case '4': // Create a New Group
+                const groupName = await prompt('Enter the name of the new group: ');
+                const response = await fetch(`${BASE_URL}/groups`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        groupName: groupName
+                    }),
+                });
 
-            case '4': // Exit
+                if (!response.ok) {
+                    console.error('Failed to create group:', await response.json());
+                    break;
+                }
+
+                const result = await response.json();
+                console.log(result.message);  // Display the backend response message
+                break;
+
+            case '5': // Exit
                 console.log('Goodbye!');
                 rl.close();
 
